@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAssessmentQuestionQuery } from "@/redux/features/assessment.api";
 import {
@@ -50,6 +50,10 @@ const AssessmentQuestionsFlow = () => {
     groupInstances: {},
   });
   const [errors, setErrors] = useState<ValidationErrors>(emptyErrors);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [stepIndex]);
 
   const steps = useMemo(
     () => (assessmentData ? buildSteps(assessmentData.questions) : []),
@@ -160,9 +164,33 @@ const AssessmentQuestionsFlow = () => {
 
   const currentStep = steps[stepIndex];
   const renderedGroupIds = new Set<string>();
+  const totalSteps = steps.length;
+  const completedSteps = stepIndex + 1;
+  const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3 text-sm font-semibold uppercase tracking-wide">
+          <span className="text-slate-500">
+            Step {completedSteps} of {totalSteps}
+          </span>
+          <span className="text-emerald-600">{progressPercentage}%</span>
+        </div>
+        <div
+          className="h-3 w-full overflow-hidden rounded-full bg-slate-200"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={totalSteps}
+          aria-valuenow={completedSteps}
+          aria-label={`Assessment progress: ${completedSteps} of ${totalSteps} steps`}
+        >
+          <div
+            className="h-full rounded-full bg-emerald-600 transition-all duration-300"
+            style={{ width: `${progressPercentage}%` }}
+          />
+        </div>
+      </div>
       <h1 className="text-3xl font-bold mb-8">
         {stepTitle(currentStep.questionType)}
       </h1>
