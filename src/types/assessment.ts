@@ -1,15 +1,28 @@
 export type InputType =
-  | "TEXT" | "EMAIL" | "NUMBER" | "SELECT"
-  | "MULTI_SELECT" | "BOOLEAN" | "DATE" | "TEXTAREA";
+  | "TEXT"
+  | "EMAIL"
+  | "NUMBER"
+  | "SELECT"
+  | "MULTI_SELECT"
+  | "BOOLEAN"
+  | "DATE"
+  | "TEXTAREA";
 
 export type RuleOperator =
-  | "EQUALS" | "NOT_EQUALS"
-  | "GREATER_THAN" | "GREATER_THAN_OR_EQUAL"
-  | "LESS_THAN" | "LESS_THAN_OR_EQUAL"
-  | "IN_LIST" | "NOT_IN_LIST"
-  | "CONTAINS" | "NOT_CONTAINS"
-  | "IS_TRUE" | "IS_FALSE"
-  | "IS_EMPTY" | "IS_NOT_EMPTY";
+  | "EQUALS"
+  | "NOT_EQUALS"
+  | "GREATER_THAN"
+  | "GREATER_THAN_OR_EQUAL"
+  | "LESS_THAN"
+  | "LESS_THAN_OR_EQUAL"
+  | "IN_LIST"
+  | "NOT_IN_LIST"
+  | "CONTAINS"
+  | "NOT_CONTAINS"
+  | "IS_TRUE"
+  | "IS_FALSE"
+  | "IS_EMPTY"
+  | "IS_NOT_EMPTY";
 
 export interface QuestionOption {
   id: string;
@@ -23,6 +36,7 @@ export interface AssessmentQuestion {
   id: string;
   questionId: string;
   questionText: string;
+  label: string | null;
   inputType: InputType;
   questionType: string;
   order: number;
@@ -58,7 +72,13 @@ export interface AssessmentData {
   groups: AssessmentGroup[];
 }
 
-export type AnswerValue = string | number | boolean | string[] | null | undefined;
+export type AnswerValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | null
+  | undefined;
 
 export interface FlatAnswers {
   [questionId: string]: AnswerValue; // keyed by question.id
@@ -79,6 +99,8 @@ export interface FormState {
 export interface ValidationErrors {
   answers: { [questionId: string]: string };
   groupInstances: {
-    [groupId: string]: { [instanceId: string]: { [questionId: string]: string } };
+    [groupId: string]: {
+      [instanceId: string]: { [questionId: string]: string };
+    };
   };
 }

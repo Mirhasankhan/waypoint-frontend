@@ -18,6 +18,7 @@ export function QuestionField({
   onChange,
   error,
 }: QuestionFieldProps) {
+  const placeholder = question.label ?? undefined;
   const label = (
     <label className="block text-sm font-medium text-gray-700 mb-1">
       {question.questionText}
@@ -63,6 +64,7 @@ export function QuestionField({
             selected={selected}
             onChange={onChange}
             hasError={!!error}
+            placeholder={placeholder ?? "Add country"}
           />
           {errorText}
         </div>
@@ -75,6 +77,7 @@ export function QuestionField({
           value={typeof value === "string" ? value : ""}
           onChange={onChange}
           hasError={!!error}
+          placeholder={placeholder ?? "Search country"}
         />
         {errorText}
       </div>
@@ -90,6 +93,7 @@ export function QuestionField({
           <input
             type={question.inputType === "EMAIL" ? "email" : "text"}
             value={(value as string) ?? ""}
+            placeholder={placeholder}
             onChange={(e) => onChange(e.target.value)}
             className={`border rounded-[7px] px-3 py-2 w-full ${inputBorder}`}
           />
@@ -108,6 +112,7 @@ export function QuestionField({
             value={
               value === null || value === undefined ? "" : (value as number)
             }
+            placeholder={placeholder}
             onChange={(e) =>
               onChange(e.target.value === "" ? null : Number(e.target.value))
             }
@@ -123,6 +128,7 @@ export function QuestionField({
           {label}
           <textarea
             value={(value as string) ?? ""}
+            placeholder={placeholder}
             onChange={(e) => onChange(e.target.value)}
             className={`border rounded-[7px] px-3 py-2 w-full min-h-[100px] ${inputBorder}`}
           />
@@ -138,6 +144,7 @@ export function QuestionField({
           <input
             type="date"
             value={(value as string) ?? ""}
+            placeholder={placeholder}
             max={question.dateNotAllowed === "future" ? today : undefined}
             min={question.dateNotAllowed === "past" ? today : undefined}
             onChange={(e) => onChange(e.target.value)}
@@ -158,7 +165,7 @@ export function QuestionField({
             className={`border rounded-[7px] px-3 py-2 w-full bg-white ${inputBorder}`}
           >
             <option value="" disabled>
-              Select an option
+              {placeholder ?? "Select an option"}
             </option>
             {question.options.map((opt) => (
               <option key={opt.id} value={opt.value}>
@@ -252,6 +259,7 @@ function CountrySingleSelect({
   value: string;
   onChange: (v: string) => void;
   hasError?: boolean;
+  placeholder?: string;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -264,7 +272,7 @@ function CountrySingleSelect({
       <input
         className={`border rounded-[7px] px-3 py-2 w-full ${hasError ? "border-red-400" : "border-gray-300"}`}
         value={open ? query : value}
-        placeholder="Search country"
+        placeholder={"Search country"}
         onFocus={() => {
           setOpen(true);
           setQuery("");
@@ -296,10 +304,12 @@ function CountryMultiSelect({
   selected,
   onChange,
   hasError,
+  placeholder,
 }: {
   selected: string[];
   onChange: (v: string[]) => void;
   hasError?: boolean;
+  placeholder?: string;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -330,7 +340,7 @@ function CountryMultiSelect({
         <input
           className="flex-1 min-w-[100px] outline-none text-sm py-1"
           value={query}
-          placeholder="Add country"
+          placeholder={placeholder ?? "Add country"}
           onFocus={() => setOpen(true)}
           onChange={(e) => setQuery(e.target.value)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
