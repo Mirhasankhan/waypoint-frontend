@@ -1,42 +1,22 @@
 "use client";
 
-import { JWTDecode } from "@/utils/jwt";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
 const SubMenu = () => {
-  const { decoded } = JWTDecode();
-
-  const role = decoded?.role;
   const pathname = usePathname();
 
   // Define all possible links
   const allLinks = [
     { href: "/", label: "Home" },
-    { href: "/lawyers", label: "Lawyers" },
-    { href: "/posts", label: "Posts" },
-    { href: "/services", label: "Service Areas" },
-
-    { href: "/premium", label: "Premium Access" },
+    { href: "/assessment", label: "Assessment" },
     { href: "/about-us", label: "About Us" },
   ];
 
-  // Filter links based on role
-  const filteredLinks = allLinks.filter((link) => {
-    if (!role) {
-      return link.href !== "/premium" && link.href !== "/create-post";
-    } else if (role === "User") {
-      return link.href !== "/premium";
-    } else if (role === "Lawyer") {
-      return link.href !== "/create-post" && link.href !== "/lawyers";
-    }
-    return true;
-  });
-
   return (
     <div className="flex items-center gap-2 text-sm sm:text-base font-medium text-gray-600">
-      {filteredLinks.map((link) => {
+      {allLinks.map((link) => {
         const isActive = pathname === link.href;
         return (
           <Link

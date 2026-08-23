@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Users, FileText, Star, Info } from "lucide-react";
+import { Home, FileText, Info } from "lucide-react";
 
 import SignOut from "../SignOut";
 import { JWTDecode } from "@/utils/jwt";
@@ -12,28 +12,15 @@ const SmallDeviceMenu = ({ setIsOpen }: any) => {
   const pathname = usePathname();
   const { decoded } = JWTDecode();
 
-  const role = decoded?.role;
   const email = decoded?.email;
 
   // All possible links
   const allLinks = [
     { href: "/", label: "Home", icon: Home },
-    { href: "/lawyers", label: "Lawyers", icon: Users },
-    { href: "/posts", label: "Posts", icon: FileText },
-    { href: "/services", label: "Service Areas", icon: Info },
-    { href: "/premium", label: "Premium Access", icon: Star },
+    { href: "/assessment", label: "Assessment", icon: FileText },
     { href: "/about-us", label: "About Us", icon: Info },
     { href: "/my-profile/manage-profile", label: "My Profile", icon: Info },
   ];
-
-  // Filter links based on role
-  const filteredLinks = allLinks.filter((link) => {
-    if (!role) return link.href !== "/premium" && link.href !== "/create-post";
-    if (role === "User") return link.href !== "/premium"; // User
-    if (role === "Lawyer")
-      return link.href !== "/create-post" && link.href !== "/lawyers"; // Lawyer
-    return true;
-  });
 
   return (
     <motion.div
@@ -48,7 +35,7 @@ const SmallDeviceMenu = ({ setIsOpen }: any) => {
         <p className="text-sm text-gray-300">Legal Services Portal</p>
       </div>
 
-      {filteredLinks.map(({ href, label, icon: Icon }) => {
+      {allLinks.map(({ href, label, icon: Icon }) => {
         const isActive = pathname === href;
         return (
           <Link
