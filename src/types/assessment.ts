@@ -75,3 +75,10 @@ export interface FormState {
     [groupId: string]: GroupInstanceState[];
   };
 }
+
+export interface ValidationErrors {
+  answers: { [questionId: string]: string };
+  groupInstances: {
+    [groupId: string]: { [instanceId: string]: { [questionId: string]: string } };
+  };
+}

@@ -6,9 +6,9 @@ import {
   AssessmentQuestion,
   FormState,
   AnswerValue,
-} from "../../../types/assessment";
-import { isQuestionVisible } from "@/utils/conditional.logic";
+} from "@/types/assessment";
 import { QuestionField } from "./QuestionField";
+import { isQuestionVisible } from "@/utils/conditional.logic";
 
 interface GroupSectionProps {
   group: AssessmentGroup;
@@ -23,6 +23,7 @@ interface GroupSectionProps {
   onAddInstance: (groupId: string) => void;
   onRemoveInstance: (groupId: string, instanceId: string) => void;
   resolveGlobalAnswer: (questionId: string) => AnswerValue;
+  errors?: { [instanceId: string]: { [questionId: string]: string } };
 }
 
 export function GroupSection({
@@ -33,6 +34,7 @@ export function GroupSection({
   onAddInstance,
   onRemoveInstance,
   resolveGlobalAnswer,
+  errors,
 }: GroupSectionProps) {
   const instances = formState.groupInstances[group.id] ?? [];
 
@@ -50,6 +52,8 @@ export function GroupSection({
           instance.answers[questionId] !== undefined
             ? instance.answers[questionId]
             : resolveGlobalAnswer(questionId);
+
+        const instanceErrors = errors?.[instance.instanceId] ?? {};
 
         return (
           <div
@@ -76,6 +80,7 @@ export function GroupSection({
                     onChange={(val) =>
                       onInstanceChange(group.id, instance.instanceId, q.id, val)
                     }
+                    error={instanceErrors[q.id]}
                   />
                 ))}
             </div>

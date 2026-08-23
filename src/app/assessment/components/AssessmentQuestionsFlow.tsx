@@ -8,10 +8,12 @@ import {
   AssessmentQuestion,
   AnswerValue,
   FormState,
-} from "../../../types/assessment";
+  ValidationErrors,
+} from "@/types/assessment";
 import { QuestionField } from "./QuestionField";
-import { isQuestionVisible } from "@/utils/conditional.logic";
 import { GroupSection } from "./GroupSection";
+import { isQuestionVisible } from "@/utils/conditional.logic";
+import { validateStep } from "@/utils/validation";
 
 function buildSteps(questions: AssessmentQuestion[]) {
   const byType = new Map<string, AssessmentQuestion[]>();
@@ -33,6 +35,8 @@ function stepTitle(questionType: string) {
     .join(" ");
 }
 
+const emptyErrors: ValidationErrors = { answers: {}, groupInstances: {} };
+
 const AssessmentQuestionsFlow = () => {
   const { assessment } = useParams();
   const { data, isLoading, isError } = useAssessmentQuestionQuery(
@@ -45,6 +49,7 @@ const AssessmentQuestionsFlow = () => {
     answers: {},
     groupInstances: {},
   });
+  const [errors, setErrors] = useState<ValidationErrors>(emptyErrors);
 
   const steps = useMemo(
     () => (assessmentData ? buildSteps(assessmentData.questions) : []),
@@ -66,18 +71,25 @@ const AssessmentQuestionsFlow = () => {
     return undefined;
   };
 
-  const setAnswer = (questionId: string, value: AnswerValue) =>
+  const setAnswer = (questionId: string, value: AnswerValue) => {
     setFormState((prev) => ({
       ...prev,
       answers: { ...prev.answers, [questionId]: value },
     }));
+    setErrors((prev) => {
+      if (!(questionId in prev.answers)) return prev;
+      const next = { ...prev.answers };
+      delete next[questionId];
+      return { ...prev, answers: next };
+    });
+  };
 
   const setInstanceAnswer = (
     groupId: string,
     instanceId: string,
     questionId: string,
     value: AnswerValue,
-  ) =>
+  ) => {
     setFormState((prev) => ({
       ...prev,
       groupInstances: {
@@ -89,6 +101,23 @@ const AssessmentQuestionsFlow = () => {
         ),
       },
     }));
+    setErrors((prev) => {
+      const instanceErrors = prev.groupInstances[groupId]?.[instanceId];
+      if (!instanceErrors || !(questionId in instanceErrors)) return prev;
+      const nextInstanceErrors = { ...instanceErrors };
+      delete nextInstanceErrors[questionId];
+      return {
+        ...prev,
+        groupInstances: {
+          ...prev.groupInstances,
+          [groupId]: {
+            ...prev.groupInstances[groupId],
+            [instanceId]: nextInstanceErrors,
+          },
+        },
+      };
+    });
+  };
 
   const addGroupInstance = (groupId: string) =>
     setFormState((prev) => ({
@@ -113,6 +142,18 @@ const AssessmentQuestionsFlow = () => {
       },
     }));
 
+  const handleContinue = () => {
+    if (!currentStep) return;
+    const { errors: stepErrors, isValid } = validateStep(
+      currentStep.questions,
+      groupsById,
+      formState,
+      resolveGlobalAnswer,
+    );
+    setErrors(stepErrors);
+    if (isValid) setStepIndex((i) => Math.min(steps.length - 1, i + 1));
+  };
+
   if (isLoading) return <div className="p-8">Loading assessment...</div>;
   if (isError || !assessmentData)
     return <div className="p-8 text-red-500">Failed to load assessment.</div>;
@@ -121,12 +162,12 @@ const AssessmentQuestionsFlow = () => {
   const renderedGroupIds = new Set<string>();
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-4">
+    <div className="max-w-4xl mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold mb-8">
         {stepTitle(currentStep.questionType)}
       </h1>
 
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {currentStep.questions.map((q) => {
           if (q.groupId) {
             if (renderedGroupIds.has(q.groupId)) return null;
@@ -139,9 +180,6 @@ const AssessmentQuestionsFlow = () => {
               .filter((gq) => gq.groupId === q.groupId)
               .sort((a, b) => a.order - b.order);
 
-            // The whole group's visibility is gated by whichever field(s)
-            // carry a dependsOnQuestionId pointing outside the group —
-            // in this schema every field in the group shares that gate.
             const gateQuestion = groupQuestions.find(
               (gq) => gq.dependsOnQuestionId,
             );
@@ -151,16 +189,18 @@ const AssessmentQuestionsFlow = () => {
             if (!gateVisible) return null;
 
             return (
-              <GroupSection
-                key={group.id}
-                group={group}
-                questions={groupQuestions}
-                formState={formState}
-                onInstanceChange={setInstanceAnswer}
-                onAddInstance={addGroupInstance}
-                onRemoveInstance={removeGroupInstance}
-                resolveGlobalAnswer={resolveGlobalAnswer}
-              />
+              <div key={group.id} className="md:col-span-2">
+                <GroupSection
+                  group={group}
+                  questions={groupQuestions}
+                  formState={formState}
+                  onInstanceChange={setInstanceAnswer}
+                  onAddInstance={addGroupInstance}
+                  onRemoveInstance={removeGroupInstance}
+                  resolveGlobalAnswer={resolveGlobalAnswer}
+                  errors={errors.groupInstances[group.id]}
+                />
+              </div>
             );
           }
 
@@ -172,6 +212,7 @@ const AssessmentQuestionsFlow = () => {
               question={q}
               value={formState.answers[q.id]}
               onChange={(val) => setAnswer(q.id, val)}
+              error={errors.answers[q.id]}
             />
           );
         })}
@@ -181,14 +222,17 @@ const AssessmentQuestionsFlow = () => {
         <button
           type="button"
           disabled={stepIndex === 0}
-          onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
+          onClick={() => {
+            setErrors(emptyErrors);
+            setStepIndex((i) => Math.max(0, i - 1));
+          }}
           className="px-6 py-2 rounded-[7px] bg-gray-100 text-gray-500 disabled:opacity-50"
         >
           ← Back
         </button>
         <button
           type="button"
-          onClick={() => setStepIndex((i) => Math.min(steps.length - 1, i + 1))}
+          onClick={handleContinue}
           className="px-6 py-2 rounded-[7px] bg-emerald-600 text-white"
         >
           Continue →

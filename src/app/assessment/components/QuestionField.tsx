@@ -1,26 +1,57 @@
 "use client";
 
 import { useState } from "react";
-import { AssessmentQuestion, AnswerValue } from "../../../types/assessment";
+import { Info } from "lucide-react";
+import { AssessmentQuestion, AnswerValue } from "@/types/assessment";
 import { COUNTRIES } from "@/utils/countries";
 
 interface QuestionFieldProps {
   question: AssessmentQuestion;
   value: AnswerValue;
   onChange: (value: AnswerValue) => void;
+  error?: string;
 }
 
 export function QuestionField({
   question,
   value,
   onChange,
+  error,
 }: QuestionFieldProps) {
   const label = (
     <label className="block text-sm font-medium text-gray-700 mb-1">
       {question.questionText}
-      {!question.isOptional && <span className="text-red-500 ml-0.5">*</span>}
+      {question.helpText && (
+        <span className="relative inline-flex align-middle ml-1.5 group">
+          <button
+            type="button"
+            aria-label="More information"
+            className="text-emerald-600 hover:text-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-full"
+          >
+            <Info className="w-4 h-4" aria-hidden="true" />
+          </button>
+          <span
+            role="tooltip"
+            className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-72 -translate-x-1/2 rounded-xl bg-slate-900 px-4 py-3 text-left text-xs font-normal leading-relaxed text-white shadow-xl group-hover:block group-focus-within:block"
+          >
+            {question.helpText}
+          </span>
+        </span>
+      )}
+      {!question.isOptional ? (
+        <span className="text-red-500 ml-0.5">*</span>
+      ) : (
+        <span className="text-gray-400 text-xs ml-1">(optional)</span>
+      )}
     </label>
   );
+
+  const errorText = error ? (
+    <p className="text-xs text-red-500 mt-1">{error}</p>
+  ) : null;
+  const inputBorder = error
+    ? "border-red-400 focus:border-red-500"
+    : "border-gray-300";
 
   if (question.isCountry) {
     if (question.inputType === "MULTI_SELECT") {
@@ -28,7 +59,12 @@ export function QuestionField({
       return (
         <div>
           {label}
-          <CountryMultiSelect selected={selected} onChange={onChange} />
+          <CountryMultiSelect
+            selected={selected}
+            onChange={onChange}
+            hasError={!!error}
+          />
+          {errorText}
         </div>
       );
     }
@@ -38,7 +74,9 @@ export function QuestionField({
         <CountrySingleSelect
           value={typeof value === "string" ? value : ""}
           onChange={onChange}
+          hasError={!!error}
         />
+        {errorText}
       </div>
     );
   }
@@ -53,11 +91,9 @@ export function QuestionField({
             type={question.inputType === "EMAIL" ? "email" : "text"}
             value={(value as string) ?? ""}
             onChange={(e) => onChange(e.target.value)}
-            className="border rounded-[7px] px-3 py-2 w-full"
+            className={`border rounded-[7px] px-3 py-2 w-full ${inputBorder}`}
           />
-          {question.helpText && (
-            <p className="text-xs text-gray-400 mt-1">{question.helpText}</p>
-          )}
+          {errorText}
         </div>
       );
 
@@ -75,8 +111,9 @@ export function QuestionField({
             onChange={(e) =>
               onChange(e.target.value === "" ? null : Number(e.target.value))
             }
-            className="border rounded-[7px] px-3 py-2 w-full"
+            className={`border rounded-[7px] px-3 py-2 w-full ${inputBorder}`}
           />
+          {errorText}
         </div>
       );
 
@@ -87,8 +124,9 @@ export function QuestionField({
           <textarea
             value={(value as string) ?? ""}
             onChange={(e) => onChange(e.target.value)}
-            className="border rounded-[7px] px-3 py-2 w-full min-h-[100px]"
+            className={`border rounded-[7px] px-3 py-2 w-full min-h-[100px] ${inputBorder}`}
           />
+          {errorText}
         </div>
       );
 
@@ -103,8 +141,9 @@ export function QuestionField({
             max={question.dateNotAllowed === "future" ? today : undefined}
             min={question.dateNotAllowed === "past" ? today : undefined}
             onChange={(e) => onChange(e.target.value)}
-            className="border rounded-[7px] px-3 py-2 w-full"
+            className={`border rounded-[7px] px-3 py-2 w-full ${inputBorder}`}
           />
+          {errorText}
         </div>
       );
     }
@@ -116,7 +155,7 @@ export function QuestionField({
           <select
             value={(value as string) ?? ""}
             onChange={(e) => onChange(e.target.value)}
-            className="border rounded-[7px] px-3 py-2 w-full bg-white"
+            className={`border rounded-[7px] px-3 py-2 w-full bg-white ${inputBorder}`}
           >
             <option value="" disabled>
               Select an option
@@ -127,6 +166,7 @@ export function QuestionField({
               </option>
             ))}
           </select>
+          {errorText}
         </div>
       );
 
@@ -141,7 +181,9 @@ export function QuestionField({
       return (
         <div>
           {label}
-          <div className="flex flex-wrap gap-2">
+          <div
+            className={`flex flex-wrap gap-2 ${error ? "p-2 border border-red-400 rounded-[7px]" : ""}`}
+          >
             {question.options.map((opt) => {
               const active = selected.includes(opt.value);
               return (
@@ -160,6 +202,7 @@ export function QuestionField({
               );
             })}
           </div>
+          {errorText}
         </div>
       );
     }
@@ -172,18 +215,27 @@ export function QuestionField({
             <button
               type="button"
               onClick={() => onChange(true)}
-              className={`px-6 py-2 rounded-[7px] font-medium ${value === true ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-400"}`}
+              className={`px-8 py-1.5 rounded-[7px] font-medium ${
+                value === true
+                  ? "bg-emerald-600 text-white"
+                  : `bg-gray-100 text-gray-400 ${error ? "ring-1 ring-red-400" : ""}`
+              }`}
             >
               Yes
             </button>
             <button
               type="button"
               onClick={() => onChange(false)}
-              className={`px-6 py-2 rounded-[7px] font-medium ${value === false ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-400"}`}
+              className={`px-8 py-1.5 rounded-[7px] font-medium ${
+                value === false
+                  ? "bg-emerald-600 text-white"
+                  : `bg-gray-100 text-gray-400 ${error ? "ring-1 ring-red-400" : ""}`
+              }`}
             >
               No
             </button>
           </div>
+          {errorText}
         </div>
       );
 
@@ -195,9 +247,11 @@ export function QuestionField({
 function CountrySingleSelect({
   value,
   onChange,
+  hasError,
 }: {
   value: string;
   onChange: (v: string) => void;
+  hasError?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -208,7 +262,7 @@ function CountrySingleSelect({
   return (
     <div className="relative">
       <input
-        className="border rounded-[7px] px-3 py-2 w-full"
+        className={`border rounded-[7px] px-3 py-2 w-full ${hasError ? "border-red-400" : "border-gray-300"}`}
         value={open ? query : value}
         placeholder="Search country"
         onFocus={() => {
@@ -241,9 +295,11 @@ function CountrySingleSelect({
 function CountryMultiSelect({
   selected,
   onChange,
+  hasError,
 }: {
   selected: string[];
   onChange: (v: string[]) => void;
+  hasError?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -254,7 +310,9 @@ function CountryMultiSelect({
 
   return (
     <div className="relative">
-      <div className="flex flex-wrap gap-1 border rounded-[7px] px-2 py-1.5">
+      <div
+        className={`flex flex-wrap gap-1 border rounded-[7px] px-2 py-1.5 ${hasError ? "border-red-400" : "border-gray-300"}`}
+      >
         {selected.map((c) => (
           <span
             key={c}
