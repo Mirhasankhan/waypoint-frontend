@@ -169,7 +169,7 @@ const AssessmentQuestionsFlow = () => {
   const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
 
   return (
-    <div className="max-w-4xl mx-auto py-10 px-4">
+    <div className="max-w-6xl mx-auto py-10 px-4">
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3 text-sm font-semibold uppercase tracking-wide">
           <span className="text-slate-500">
