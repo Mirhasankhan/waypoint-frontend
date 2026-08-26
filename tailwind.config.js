@@ -13,6 +13,7 @@ module.exports = {
     extend: {
       fontFamily: {
         alex: ['"Alex Brush"', "cursive"],
+        display: ['var(--font-fraunces)', "Georgia", "Cambria", "serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -37,6 +38,16 @@ module.exports = {
         secondary: {
           DEFAULT: "#2b645c",
           foreground: "hsl(var(--secondary-foreground))",
+        },
+        ink: {
+          DEFAULT: "#141829",
+          800: "#1b2036",
+          700: "#232a45",
+        },
+        cream: {
+          DEFAULT: "#faf7f1",
+          100: "#f4f0e8",
+          200: "#ece7db",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
