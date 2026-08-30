@@ -34,10 +34,10 @@ export function validateAnswer(question: AssessmentQuestion, value: AnswerValue)
       const num = Number(value);
       if (Number.isNaN(num)) return "Please enter a valid number.";
       if (question.minValue !== null && num < question.minValue) {
-        return `Value must be at least ${question.minValue}.`;
+        return `Value cannot be less than ${question.minValue}.`;
       }
       if (question.maxValue !== null && num > question.maxValue) {
-        return `Value must be at most ${question.maxValue}.`;
+        return `Value cannot be greater than ${question.maxValue}.`;
       }
       break;
     }

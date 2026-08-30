@@ -10,6 +10,7 @@ interface QuestionFieldProps {
   value: AnswerValue;
   onChange: (value: AnswerValue) => void;
   error?: string;
+  className?: string;
 }
 
 export function QuestionField({
@@ -17,7 +18,13 @@ export function QuestionField({
   value,
   onChange,
   error,
+  className,
 }: QuestionFieldProps) {
+  const containerClass =
+    className ??
+    (question.inputType === "MULTI_SELECT" || question.inputType === "TEXTAREA"
+      ? "md:col-span-2"
+      : "");
   const placeholder = question.label ?? undefined;
   const label = (
     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -58,7 +65,7 @@ export function QuestionField({
     if (question.inputType === "MULTI_SELECT") {
       const selected = Array.isArray(value) ? value : [];
       return (
-        <div>
+        <div className={containerClass}>
           {label}
           <CountryMultiSelect
             selected={selected}
@@ -71,7 +78,7 @@ export function QuestionField({
       );
     }
     return (
-      <div>
+      <div className={containerClass}>
         {label}
         <CountrySingleSelect
           value={typeof value === "string" ? value : ""}
@@ -88,7 +95,7 @@ export function QuestionField({
     case "TEXT":
     case "EMAIL":
       return (
-        <div>
+        <div className={containerClass}>
           {label}
           <input
             type={question.inputType === "EMAIL" ? "email" : "text"}
@@ -103,7 +110,7 @@ export function QuestionField({
 
     case "NUMBER":
       return (
-        <div>
+        <div className={containerClass}>
           {label}
           <input
             type="number"
@@ -124,7 +131,7 @@ export function QuestionField({
 
     case "TEXTAREA":
       return (
-        <div>
+        <div className={containerClass}>
           {label}
           <textarea
             value={(value as string) ?? ""}
@@ -139,7 +146,7 @@ export function QuestionField({
     case "DATE": {
       const today = new Date().toISOString().split("T")[0];
       return (
-        <div>
+        <div className={containerClass}>
           {label}
           <input
             type="date"
@@ -157,7 +164,7 @@ export function QuestionField({
 
     case "SELECT":
       return (
-        <div>
+        <div className={containerClass}>
           {label}
           <select
             value={(value as string) ?? ""}
@@ -186,11 +193,12 @@ export function QuestionField({
             : [...selected, val],
         );
       return (
-        <div>
+        <div className={containerClass}>
           {label}
+          <p className="text-gray-500 text-xs mb-3">Please select all the applicable options.</p>
           <div
             className={`flex flex-wrap gap-2 ${error ? "p-2 border border-red-400 rounded-[7px]" : ""}`}
-          >
+          >           
             {question.options.map((opt) => {
               const active = selected.includes(opt.value);
               return (
@@ -198,11 +206,10 @@ export function QuestionField({
                   type="button"
                   key={opt.id}
                   onClick={() => toggle(opt.value)}
-                  className={`px-3 py-1.5 rounded-full border text-sm ${
-                    active
+                  className={`px-4 py-2 font-medium rounded-[7px] border text-sm ${active
                       ? "bg-emerald-600 text-white border-emerald-600"
                       : "bg-white text-gray-700 border-gray-300"
-                  }`}
+                    }`}
                 >
                   {opt.label}
                 </button>
@@ -216,28 +223,26 @@ export function QuestionField({
 
     case "BOOLEAN":
       return (
-        <div>
+        <div className={containerClass}>
           {label}
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => onChange(true)}
-              className={`px-8 py-1.5 rounded-[7px] font-medium ${
-                value === true
+              className={`px-8 py-1.5 rounded-[7px] font-medium ${value === true
                   ? "bg-emerald-600 text-white"
                   : `bg-gray-100 text-gray-400 ${error ? "ring-1 ring-red-400" : ""}`
-              }`}
+                }`}
             >
               Yes
             </button>
             <button
               type="button"
               onClick={() => onChange(false)}
-              className={`px-8 py-1.5 rounded-[7px] font-medium ${
-                value === false
+              className={`px-8 py-1.5 rounded-[7px] font-medium ${value === false
                   ? "bg-emerald-600 text-white"
                   : `bg-gray-100 text-gray-400 ${error ? "ring-1 ring-red-400" : ""}`
-              }`}
+                }`}
             >
               No
             </button>
